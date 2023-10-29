@@ -23,14 +23,31 @@ export default defineComponent({
       type: Array as PropType<ResolvedSidebarItem[]>,
       required: true,
     },
+
+    /**
+     * is the sidebar folds automatically
+     *
+     * 侧边栏是否自动折叠
+     */
+    isAutoFold: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   setup(props) {
     const route = useRoute();
-    const openGroupIndex = ref(-1);
+    const openGroupIndices = ref(props.isAutoFold ? [-1] : []);
 
     const toggleGroup = (index: number): void => {
-      openGroupIndex.value = index === openGroupIndex.value ? -1 : index;
+      if (props.isAutoFold) {
+        openGroupIndices.value = [index];
+      } else {
+        const currentIndex = openGroupIndices.value.indexOf(index);
+
+        if (currentIndex === -1) openGroupIndices.value.push(index);
+        else openGroupIndices.value.splice(currentIndex, 1);
+      }
     };
 
     watch(
@@ -40,7 +57,8 @@ export default defineComponent({
           isMatchedSidebarItem(route, item),
         );
 
-        openGroupIndex.value = index;
+        if (!props.isAutoFold && !openGroupIndices.value.includes(index))
+          openGroupIndices.value.push(index);
       },
       { immediate: true, flush: "post" },
     );
@@ -55,7 +73,7 @@ export default defineComponent({
             config.type === "group"
               ? h(SidebarGroup, {
                   config,
-                  open: index === openGroupIndex.value,
+                  open: openGroupIndices.value.includes(index),
                   onToggle: () => toggleGroup(index),
                 })
               : h(SidebarChild, { config }),
