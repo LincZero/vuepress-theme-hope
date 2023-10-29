@@ -25,7 +25,7 @@ export default defineComponent({
     },
 
     /**
-     * is the sidebar folds automatically
+     * Is the sidebar folds automatically
      *
      * 侧边栏是否自动折叠
      */
